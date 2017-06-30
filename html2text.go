@@ -166,6 +166,10 @@ func HTML2Text(html string) string {
 					outBuf.WriteString("\r\n\r\n")
 				}
 				canPrintNewline = false
+			} else if tagName == "/ul" {
+				outBuf.WriteString("\r\n")
+			} else if tagName == "li" || tagName == "li/" {
+				outBuf.WriteString("\r\n")
 			} else if tagName == "br" || tagName == "br/" {
 				// new line
 				outBuf.WriteString("\r\n")
