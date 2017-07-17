@@ -97,6 +97,11 @@ func HTMLEntitiesToText(htmlEntsText string) string {
 
 // HTML2Text converts html into a text form
 func HTML2Text(html string) string {
+	return HTML2TextCustomLine(html, "\r\n")
+}
+
+// HTML2TextNewCustomLine converts html into a text form with custom line endings
+func HTML2TextCustomLine(html, newline string) string {
 	inLen := len(html)
 	tagStart := 0
 	inEnt := false
@@ -163,19 +168,22 @@ func HTML2Text(html string) string {
 
 			if headersRE.MatchString(tagName) {
 				if canPrintNewline {
-					outBuf.WriteString("\r\n\r\n")
+					outBuf.WriteString(newline)
+					outBuf.WriteString(newline)
 				}
 				canPrintNewline = false
 			} else if tagName == "/ul" {
-				outBuf.WriteString("\r\n")
+				outBuf.WriteString(newline)
 			} else if tagName == "li" || tagName == "li/" {
-				outBuf.WriteString("\r\n")
+				outBuf.WriteString(newline)
 			} else if tagName == "br" || tagName == "br/" {
 				// new line
-				outBuf.WriteString("\r\n")
+				outBuf.WriteString(newline)
 			} else if tagName == "p" || tagName == "/p" {
 				if canPrintNewline {
-					outBuf.WriteString("\r\n\r\n")
+					outBuf.WriteString(newline)
+					outBuf.WriteString(newline)
+
 				}
 				canPrintNewline = false
 			} else if badTagnamesRE.MatchString(tagName) {

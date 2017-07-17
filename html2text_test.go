@@ -68,5 +68,10 @@ func TestHTML2Text(t *testing.T) {
 			So(HTML2Text(`we are not <script type="javascript"></script>interested in scripts`),
 				ShouldEqual, "we are not interested in scripts")
 		})
+
+		Convey("Custom Line Endingd", func() {
+			So(HTML2TextCustomLine(`list of items<ul><li>One</li><li>Two</li><li>Three</li></ul>`, "<br/>"), ShouldEqual, "list of items<br/>One<br/>Two<br/>Three<br/>")
+
+		})
 	})
 }
