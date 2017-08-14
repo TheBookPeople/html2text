@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/wgriffiths/html2text"
+	"github.com/TheBookPeople/html2text"
 )
 
 func main() {
