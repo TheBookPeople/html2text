@@ -10,6 +10,8 @@ var badTagnamesRE = regexp.MustCompile(`^(head|script|style|a)($|\s*)`)
 var linkTagRE = regexp.MustCompile(`a.*href=('([^']*?)'|"([^"]*?)")`)
 var badLinkHrefRE = regexp.MustCompile(`#|javascript:`)
 var headersRE = regexp.MustCompile(`^(\/)?h[1-6]`)
+var newDoubleLineRE = regexp.MustCompile(`^(br|p)`)
+var newLineRE = regexp.MustCompile(`^(li)`)
 
 func parseHTMLEntity(entName string) (string, bool) {
 	entName = strings.ToLower(entName)
@@ -102,22 +104,17 @@ func HTML2Text(html string) string {
 
 // HTML2TextNewCustomLine converts html into a text form with custom line endings
 func HTML2TextCustomLine(html, newline string) string {
-	inLen := len(html)
 	tagStart := 0
 	inEnt := false
 	badTagStackDepth := 0 // if == 1 it means we are inside <head>...</head>
 	shouldOutput := true
 	// new line cannot be printed at the beginning or
 	// for <p> after a new line created by previous <p></p>
-	canPrintNewline := false
+	//	canPrintNewline := false
 
 	outBuf := bytes.NewBufferString("")
 
 	for i, r := range html {
-		if inLen > 0 && i == inLen-1 {
-			// prevent new line at the end of the document
-			canPrintNewline = false
-		}
 
 		switch {
 		case r <= 0xD, r == 0x85, r == 0x2028, r == 0x2029: // skip new lines
@@ -165,27 +162,14 @@ func HTML2TextCustomLine(html, newline string) string {
 		case r == '>': // end of a tag
 			shouldOutput = true
 			tagName := strings.ToLower(html[tagStart:i])
-
 			if headersRE.MatchString(tagName) {
-				if canPrintNewline {
-					outBuf.WriteString(newline)
-					outBuf.WriteString(newline)
-				}
-				canPrintNewline = false
-			} else if tagName == "/ul" {
 				outBuf.WriteString(newline)
-			} else if tagName == "li" || tagName == "li/" {
 				outBuf.WriteString(newline)
-			} else if tagName == "br" || tagName == "br/" {
-				// new line
+			} else if newDoubleLineRE.MatchString(tagName) {
 				outBuf.WriteString(newline)
-			} else if tagName == "p" || tagName == "/p" {
-				if canPrintNewline {
-					outBuf.WriteString(newline)
-					outBuf.WriteString(newline)
-
-				}
-				canPrintNewline = false
+				outBuf.WriteString(newline)
+			} else if newLineRE.MatchString(tagName) {
+				outBuf.WriteString(newline)
 			} else if badTagnamesRE.MatchString(tagName) {
 				// unwanted block
 				badTagStackDepth++
@@ -207,12 +191,12 @@ func HTML2TextCustomLine(html, newline string) string {
 				// end of unwanted block
 				badTagStackDepth--
 			}
+
 			continue
 
 		} // switch end
 
 		if shouldOutput && badTagStackDepth == 0 && !inEnt {
-			canPrintNewline = true
 			outBuf.WriteRune(r)
 		}
 	}
